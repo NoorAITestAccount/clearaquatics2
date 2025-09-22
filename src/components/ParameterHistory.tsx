@@ -200,85 +200,112 @@ export function ParameterHistory() {
           </div>
 
           {/* Parameter Selection */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Parameter Selection</CardTitle>
-                  <CardDescription>
-                    Choose which parameters to display and how to view them
-                  </CardDescription>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant={chartMode === 'separate' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setChartMode('separate')}
-                  >
-                    <BarChart3 className="h-4 w-4 mr-2" />
-                    Separate Charts
-                  </Button>
-                  <Button
-                    variant={chartMode === 'combined' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setChartMode('combined')}
-                    disabled={selectedParameters.length < 2}
-                  >
-                    <LineChartIcon className="h-4 w-4 mr-2" />
-                    Combined Chart
-                  </Button>
-                </div>
+          <div className="space-y-6">
+            {/* Chart Mode Toggle */}
+            <div className="flex items-center justify-center">
+              <div className="inline-flex items-center rounded-lg border bg-muted p-1">
+                <Button
+                  variant={chartMode === 'separate' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setChartMode('separate')}
+                  className="rounded-md"
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  Separate Charts
+                </Button>
+                <Button
+                  variant={chartMode === 'combined' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setChartMode('combined')}
+                  disabled={selectedParameters.length < 2}
+                  className="rounded-md"
+                >
+                  <LineChartIcon className="h-4 w-4 mr-2" />
+                  Combined Chart
+                </Button>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {availableParameters.map((parameter) => {
-                  const isSelected = selectedParameters.includes(parameter);
-                  const stats = getParameterStats(parameter);
-                  const trend = calculateTrend(parameter);
-                  
-                  return (
-                    <div
-                      key={parameter}
-                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                        isSelected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
-                      }`}
-                      onClick={() => handleParameterToggle(parameter)}
-                    >
-                      <div className="flex items-center justify-between mb-2">
+            </div>
+
+            {/* Parameter Selection Grid */}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {availableParameters.map((parameter) => {
+                const isSelected = selectedParameters.includes(parameter);
+                const stats = getParameterStats(parameter);
+                const trend = calculateTrend(parameter);
+                
+                return (
+                  <div
+                    key={parameter}
+                    className={`group relative overflow-hidden rounded-xl border transition-all duration-200 cursor-pointer hover:shadow-md ${
+                      isSelected 
+                        ? 'border-primary bg-gradient-to-br from-primary/5 to-primary/10 shadow-sm' 
+                        : 'border-border bg-card hover:border-primary/30 hover:bg-accent/20'
+                    }`}
+                    onClick={() => handleParameterToggle(parameter)}
+                  >
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
-                          <Checkbox checked={isSelected} readOnly />
-                          <span className="font-medium">{formatParameterName(parameter)}</span>
+                          <div className={`w-2 h-2 rounded-full transition-colors ${
+                            isSelected ? 'bg-primary' : 'bg-muted-foreground/30'
+                          }`} />
+                          <span className="font-medium text-sm leading-tight">
+                            {formatParameterName(parameter)}
+                          </span>
                         </div>
                         {trend !== null && (
-                          <div className={`flex items-center text-sm ${trend > 0 ? 'text-green-600' : trend < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                          <div className={`flex items-center text-xs px-2 py-1 rounded-full ${
+                            trend > 0 
+                              ? 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30' 
+                              : trend < 0 
+                              ? 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/30'
+                              : 'text-gray-700 bg-gray-100 dark:text-gray-400 dark:bg-gray-900/30'
+                          }`}>
                             {trend > 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
                             {Math.abs(trend).toFixed(1)}%
                           </div>
                         )}
                       </div>
+                      
                       {stats && (
-                        <div className="space-y-1 text-xs text-muted-foreground">
-                          <div>Latest: {stats.latest.toFixed(2)}{stats.unit}</div>
-                          <div>Avg: {stats.avg.toFixed(2)}{stats.unit}</div>
-                          <div>{stats.count} measurements</div>
+                        <div className="space-y-2">
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-lg font-bold text-foreground">
+                              {stats.latest.toFixed(1)}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {stats.unit}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>Avg: {stats.avg.toFixed(1)}{stats.unit}</span>
+                            <span>{stats.count} tests</span>
+                          </div>
                         </div>
                       )}
                     </div>
-                  );
-                })}
+                    
+                    {/* Selection indicator */}
+                    <div className={`absolute inset-x-0 bottom-0 h-1 transition-all duration-200 ${
+                      isSelected ? 'bg-primary' : 'bg-transparent'
+                    }`} />
+                  </div>
+                );
+              })}
+            </div>
+            
+            {selectedParameters.length === 0 && (
+              <div className="text-center py-8">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
+                  <BarChart3 className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <h3 className="font-medium mb-2">Select Parameters to View</h3>
+                <p className="text-sm text-muted-foreground">
+                  Choose one or more parameters above to display their historical trends.
+                </p>
               </div>
-              
-              {selectedParameters.length === 0 && (
-                <Alert className="mt-4">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    Please select at least one parameter to display charts.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </div>
 
           {selectedParameters.length > 0 && (
             <>
